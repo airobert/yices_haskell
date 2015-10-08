@@ -73,7 +73,7 @@ checkY yp@(_, Just hout, _, _) =
   do runCmdsY yp [ECHO('\n':_BEGIN_OUTPUT), CHECK, ECHO('\n':_END_OUTPUT)]
      (s:ss) <- hGetOutLines hout
      --hPutStrLn stderr ss -- for debugging
-     --print ss
+     print ss
      return $
        case s of
          "sat"    -> Sat (parseExpYs $ unlines ss)
@@ -86,10 +86,11 @@ checkMAX yp@(_, Just hout, _, _) =
   do runCmdsY yp [ECHO('\n':_BEGIN_OUTPUT), MAXSAT, ECHO('\n':_END_OUTPUT)]
      (s:ss) <- hGetOutLines hout
      --hPutStrLn stderr ss -- for debugging
-     --print ss
+     print s
+     let md = (reverse (tail (reverse (tail ss))))
      return $
        case s of
-         "sat"    -> Sat (parseExpYs $ unlines ss)
+         "sat"    -> Sat (parseExpYs $ unlines md)
          "unknown"-> Unknown (parseExpYs $ unlines ss)
          "unsat"  -> UnSat (map read.words.tail.dropWhile (/=':').head $ ss)
          _        -> InCon (s:ss)

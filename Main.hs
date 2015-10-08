@@ -114,7 +114,8 @@ n = 3
 m = get_name "m" n
 w = get_name "w" n
 
-
+men = map fst mt
+women = map fst wt
 
 --define a list of n * n variables
 defs :: [CmdY]
@@ -173,14 +174,43 @@ test1 =
      Sat ss <- checkY yp
      --return ss
      runCmdsY yp (take 2 mymax  ++ [MAXSAT])
+     print "------------------------"
+     Sat ss' <- checkMAX yp
+     --print ss'
+     return (obtain_bool_value var_all_list ss')
 
-     s <- checkMAX yp
-     --return s
-     return (obtain_bool_value var_all_list ss)
+--eng = [ (w, m) | w <- [1,2,3], m <-[1..5], m > 2]
 
+--eng = [(w, m) | w <- [1..3], m <- [1..4]]
+--eng = [ (w, m) | w <- women, m <- men , ((test1!!(w*n + m)) == (Just True))]
+infix 1 ==> 
+  
+(==>) :: Bool -> Bool -> Bool
+p ==> q = (not p) || q
+forall = flip all
 
+get_eng lst = do
+   l <- test1
+   return [ (w, m) | w <- women, m <- men , ((l!!((fromIntegral w -1) * n + (fromIntegral m-1))) == (Just True))]
 
+eng = get_eng test1
 
+isStable (wpref, mpref) engaged = let 
+    wf = plist2pfct wpref
+    mf = plist2pfct mpref
+  in 
+    forall engaged (\ (w,m) -> forall engaged 
+          (\ (w',m') -> (wf w m' m ==> mf m' w' w)
+                         && 
+                        (mf m w' w ==> wf w' m' m)))
+plist2pfct table x y y' = 
+  let 
+    Just prefs = lookup x table
+  in elem y (takeWhile (/= y') prefs)
+
+result engage = do
+  eng' <- engage
+  return (isStable (wt, mt) eng')
 
 
 
